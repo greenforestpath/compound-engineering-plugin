@@ -121,17 +121,29 @@ def flush_tools():
     pending_tools.clear()
 
 
+def _safe_slice(value, n):
+    """Slice value if it is a string; otherwise return ''.
+
+    Some Claude Code / MCP tool inputs put structured data (dicts, lists) in
+    fields like `query` or `prompt`. `dict[:N]` raises TypeError, so guard
+    every slice with an isinstance check.
+    """
+    return value[:n] if isinstance(value, str) else ""
+
+
 def summarize_claude_tool(block):
     """Extract name and target from a Claude Code tool_use block."""
     name = block.get("name", "unknown")
     inp = block.get("input", {})
+    fp = inp.get("file_path")
+    p = inp.get("path")
     target = (
-        inp.get("file_path")
-        or inp.get("path")
-        or inp.get("command", "")[:120]
-        or inp.get("pattern", "")
-        or inp.get("query", "")[:80]
-        or inp.get("prompt", "")[:80]
+        (fp if isinstance(fp, str) else None)
+        or (p if isinstance(p, str) else None)
+        or _safe_slice(inp.get("command"), 120)
+        or _safe_slice(inp.get("pattern"), 200)
+        or _safe_slice(inp.get("query"), 80)
+        or _safe_slice(inp.get("prompt"), 80)
         or ""
     )
     if isinstance(target, str) and len(target) > 120:
@@ -290,13 +302,15 @@ def handle_cursor(obj):
             elif block.get("type") == "tool_use":
                 name = block.get("name", "unknown")
                 inp = block.get("input", {})
+                p = inp.get("path")
+                fp = inp.get("file_path")
                 target = (
-                    inp.get("path")
-                    or inp.get("file_path")
-                    or inp.get("command", "")[:120]
-                    or inp.get("pattern", "")
-                    or inp.get("glob_pattern", "")
-                    or inp.get("target_directory", "")
+                    (p if isinstance(p, str) else None)
+                    or (fp if isinstance(fp, str) else None)
+                    or _safe_slice(inp.get("command"), 120)
+                    or _safe_slice(inp.get("pattern"), 200)
+                    or _safe_slice(inp.get("glob_pattern"), 200)
+                    or _safe_slice(inp.get("target_directory"), 200)
                     or ""
                 )
                 if isinstance(target, str) and len(target) > 120:

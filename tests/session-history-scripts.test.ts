@@ -517,6 +517,139 @@ describe("extract-skeleton", () => {
     expect(stdout).toContain("[tools] 4x Read")
     expect(stdout).toContain("all ok")
   })
+
+  // Regression: issue #805 — some Claude Code / MCP tool inputs put a dict in
+  // fields the summarizer slices (`command`, `query`, `prompt`, `pattern`).
+  // `dict[:80]` raises TypeError: unhashable type: 'slice'. The fix guards
+  // every slice with isinstance(value, str); dict-shaped fields fall through
+  // to the next candidate or empty target without crashing the extraction.
+  test("does not crash when Claude tool input has a dict-shaped query", async () => {
+    const lines = [
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "t1",
+              name: "WebSearch",
+              input: { query: { foo: "bar" } },
+            },
+          ],
+        },
+        timestamp: "2026-05-08T10:00:00.000Z",
+      }),
+    ]
+    const { stdout, exitCode, stderr } = await runScript(
+      "extract-skeleton.py",
+      [],
+      lines.join("\n")
+    )
+    expect(exitCode).toBe(0)
+    expect(stderr).not.toContain("TypeError")
+    expect(stdout).toContain("[tool] WebSearch")
+    const metaLine = stdout.trim().split("\n").at(-1)!
+    expect(JSON.parse(metaLine).parse_errors).toBe(0)
+  })
+
+  test("dict-shaped command/prompt/pattern fields do not crash and fall back to empty target", async () => {
+    const lines = [
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "c1",
+              name: "Bash",
+              input: { command: { cmd: "ls" } },
+            },
+            {
+              type: "tool_use",
+              id: "p1",
+              name: "Task",
+              input: { prompt: { description: "x" } },
+            },
+            {
+              type: "tool_use",
+              id: "g1",
+              name: "Grep",
+              input: { pattern: { regex: "foo" } },
+            },
+          ],
+        },
+        timestamp: "2026-05-08T10:00:01.000Z",
+      }),
+    ]
+    const { stdout, exitCode } = await runScript(
+      "extract-skeleton.py",
+      [],
+      lines.join("\n")
+    )
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain("[tool] Bash")
+    expect(stdout).toContain("[tool] Task")
+    expect(stdout).toContain("[tool] Grep")
+  })
+
+  test("falls through dict-shaped query to a later string field", async () => {
+    // When `query` is a dict, the summarizer must skip it and try `prompt`.
+    const lines = [
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "x1",
+              name: "MCPTool",
+              input: {
+                query: { structured: true },
+                prompt: "fallback prompt text",
+              },
+            },
+          ],
+        },
+        timestamp: "2026-05-08T10:00:02.000Z",
+      }),
+    ]
+    const { stdout, exitCode } = await runScript(
+      "extract-skeleton.py",
+      [],
+      lines.join("\n")
+    )
+    expect(exitCode).toBe(0)
+    expect(stdout).toContain("fallback prompt text")
+  })
+
+  test("dict-shaped Cursor tool inputs do not crash", async () => {
+    // Same exposure exists in handle_cursor's tool_use path.
+    const lines = [
+      JSON.stringify({
+        role: "assistant",
+        message: {
+          content: [
+            {
+              type: "tool_use",
+              name: "search",
+              input: { pattern: { regex: "foo" }, glob_pattern: { type: "x" } },
+            },
+          ],
+        },
+      }),
+    ]
+    const { stdout, exitCode, stderr } = await runScript(
+      "extract-skeleton.py",
+      [],
+      lines.join("\n")
+    )
+    expect(exitCode).toBe(0)
+    expect(stderr).not.toContain("TypeError")
+    expect(stdout).toContain("[tool] search")
+  })
 })
 
 // ---------------------------------------------------------------------------
