@@ -82,7 +82,7 @@ Phase 2 surfaces 2-3 concrete approaches with at least one **non-obvious angle**
 
 ### 5. Synthesis Summary — the last cheap moment to correct
 
-Before writing the doc, `ce-brainstorm` emits a **scoping synthesis** shaped like what two product collaborators would confirm before writing a PRD. It surfaces what's being built, the key trade-offs the dialogue produced, what's been deferred, and any genuine forks the user should weigh in on. Each section renders only when it has something to say — no empty buckets padded for ceremony. When the upstream conversation short-circuited (Phase 0.2 fast path, requirements already clear, no questions asked), the scoping synthesis compresses to a single forward-looking sentence with an end-of-turn interrupt window. In headless mode, the scoping synthesis is skipped and un-validated agent bets route to a separate `## Assumptions` section so downstream review can scrutinize them.
+Before writing the doc, `ce-brainstorm` emits a **scoping synthesis** shaped like what two product collaborators would confirm before writing a PRD. It surfaces what's being built, the key trade-offs the dialogue produced, what's been deferred, and any genuine forks the user should weigh in on. Each section renders only when it has something to say — no empty buckets padded for ceremony. When the upstream conversation short-circuited (Phase 0.2 fast path, requirements already clear, no questions asked), the scoping synthesis compresses to a single forward-looking sentence with an end-of-turn interrupt window.
 
 ### 6. Stable identifiers that flow downstream
 
@@ -193,7 +193,7 @@ Yes. The Lightweight tier and the announce-mode fast path support that. If you o
 Skip `ce-brainstorm` and go directly to `/ce-plan`. The plan skill consumes any kind of input.
 
 **What does "Inferred" mean in the synthesis?**
-The agent composes an internal three-bucket draft (Stated / Inferred / Out of scope) as a thinking step before presenting the scoping synthesis. Inferred items are the agent's bets to fill dialogue gaps. In interactive mode, those that survive the keep test surface as call-outs in the scoping synthesis; the rest dissolve into the requirements doc's Key Decisions. In headless mode (no synchronous user), the internal-draft Inferred bullets route to a separate `## Assumptions` section so downstream review can scrutinize them.
+The agent composes an internal three-bucket draft (Stated / Inferred / Out of scope) as a thinking step before presenting the scoping synthesis. Inferred items are the agent's bets to fill dialogue gaps. Those that survive the keep test surface as call-outs in the scoping synthesis; the rest dissolve into the requirements doc's Key Decisions when the user confirms.
 
 **Does it work for non-software topics?**
 Yes — a domain-agnostic facilitator preserves the one-question-at-a-time discipline and right-sizing for naming, decisions, planning, etc.

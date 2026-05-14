@@ -222,14 +222,12 @@ Surface a scoping synthesis to the user before Phase 3 writes the requirements d
 
 Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Phase 0.1b non-software (universal-brainstorming) route.
 
-**Path A vs Path B (interactive mode):** the scoping synthesis shape depends on TWO signals — whether any blocking question fired AND what tier Phase 0.3 classified the scope as.
+**Path A vs Path B:** the scoping synthesis shape depends on TWO signals — whether any blocking question fired AND what tier Phase 0.3 classified the scope as.
 
 - **Path A — no blocking questions fired AND tier is Lightweight**: announce-mode. Emit "What we're building" prose only (1–3 sentences), end turn. No other sections, no confirmation question. The user interrupts on the next message if the shape is wrong; otherwise Phase 3 fires.
 - **Path B — at least one blocking question fired, OR tier is Standard / Deep-feature / Deep-product**: full tier-aware scoping synthesis with confirmation gate. Two scenarios fire Path B: (a) the user invested answer-time during dialogue, or (b) the user pre-loaded substantive scope content (Phase 0.2 fast-path with a richly-specified opening prompt). Either way, the substance earns a real checkpoint. Confirmation is unconditional even when zero call-outs survive the keep test.
 
 **Why the tier guard on Path A**: Phase 0.2's fast path serves two very different cases — a tight one-liner that needs no dialogue ("fix the typo on line 47") and a richly pre-loaded brainstorm context that ALSO needs no dialogue because the user pre-stated everything. Without the tier guard, both route to Path A and the pre-loaded case gets a 1-sentence checkpoint for what may be 20+ items worth of scope. Tier-classifying Phase 0.3 distinguishes the two — pre-loaded substance makes the tier Standard or Deep, which then routes to Path B.
-
-**Headless mode** (LFG / `disable-model-invocation`): internal draft is composed but stage 2 (the chat-time scoping synthesis) is skipped entirely — no synchronous user. The Path A / Path B gate is moot. Inferred bets from the internal draft route to a `## Assumptions` section in the doc instead of Key Decisions. See `references/synthesis-summary.md` Headless mode for the full routing.
 
 ### Phase 3: Capture the Requirements
 

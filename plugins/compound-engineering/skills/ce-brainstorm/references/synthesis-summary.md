@@ -4,11 +4,11 @@
 
 **Two-stage shape: internal draft, then chat-time scoping synthesis.** The synthesis is composed in two stages. Stage 1 is an internal three-bucket draft (Stated / Inferred / Out of scope) the agent uses to think comprehensively about scope. Stage 2 is the scoping synthesis presented to the user — shaped like what two product collaborators would confirm before writing a PRD, not like a comprehensive audit and not like a one-line preview. The user only sees stage 2. The internal draft still informs the doc body via the doc-shape routing below; it just doesn't reach the user verbatim. This split exists because the comprehensive audit shape produced too much detail for the user to actually weigh in on, even when the granularity rules were followed.
 
-**Three-bucket structure is the internal draft, not the user-facing artifact.** It does its scope-thinking job during stage 1 and dissolves when Phase 3 writes the doc: Stated content informs Requirements, Inferred content informs Key Decisions (interactive mode) or `## Assumptions` (non-interactive mode), Out-of-scope content informs Scope Boundaries. The doc has no parallel `## Synthesis` section — only the scoping synthesis prose embeds, as `## Summary`. See "Doc shape after confirmation" below for the routing.
+**Three-bucket structure is the internal draft, not the user-facing artifact.** It does its scope-thinking job during stage 1 and dissolves when Phase 3 writes the doc: Stated content informs Requirements, Inferred content informs Key Decisions, Out-of-scope content informs Scope Boundaries. The doc has no parallel `## Synthesis` section — only the scoping synthesis prose embeds, as `## Summary`. See "Doc shape after confirmation" below for the routing.
 
 This content is loaded when Phase 2.5 fires — after Phase 2 (approaches chosen) and before Phase 3 (write requirements doc). The synthesis is the user's last opportunity to correct the agent's interpretation before the doc lands. It serves two purposes: synthesis confirmation (the user agreed to many individual things in dialogue but never saw the whole) and a transition checkpoint ("about to write a doc").
 
-Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Phase 0.1b non-software (universal-brainstorming) route. In non-interactive (headless) mode, Phase 2.5 still fires — the internal draft and the "What we're building" prose are still composed, but the chat-time rendering of stage 2 is skipped (no synchronous user); Inferred bets route to a `## Assumptions` section in the doc. See "Headless mode" below for the full routing.
+Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Phase 0.1b non-software (universal-brainstorming) route. The skill is interactive by design — brainstorming requires dialogue with a synchronous user. There is no non-interactive mode; if an automated workflow needs a requirements doc without dialogue, the right move is to write the doc from context directly, not to invoke `ce-brainstorm`.
 
 ---
 
@@ -240,26 +240,6 @@ Fall back to a numbered list in chat only when no blocking tool exists or the ca
 
 ---
 
-## Headless mode
-
-When the skill is invoked from an automated workflow such as LFG or any `disable-model-invocation` context, the skill runs in non-interactive mode (no synchronous user). This does NOT mean unaudited — the artifact is read by downstream skills (ce-doc-review, ce-plan) and human reviewers (PR review). Audit shifts from chat history to the artifact itself.
-
-**Only the chat-time presentation of stage 2 is moot in headless mode.** Compose the internal draft (stage 1) as usual, then compose the **"What we're building" prose** the same way you would for an interactive run — it provides the doc's `## Summary` content, which is required for Standard/Deep docs and most Lightweight docs per `references/requirements-capture.md`. What is skipped is the *chat-time rendering* of stage 2: the conditional Trade-offs / What's-not-in-scope / Call-outs sections, the confirmation question, and the Path A / Path B gate. There is no synchronous user, so there is nothing to present and nothing to gate on.
-
-Shared behavior:
-
-- **No user prompt; no blocking question; no chat-time scoping synthesis emission.** The "What we're building" prose is still composed; it is not emitted to chat, it is routed straight into `## Summary` when Phase 3 writes the doc.
-- **Route internal-draft content into the doc with mode-aware shape:**
-  - **Stated** content → Requirements (user's actual stated constraints)
-  - **Out-of-scope** content → Scope Boundaries (deliberate exclusions)
-  - **Inferred** content → `## Assumptions` section — explicitly labeled as un-validated agent bets that downstream review must scrutinize. Do NOT route Inferred items into Key Decisions or Requirements; that would make un-validated bets indistinguishable from user-confirmed decisions.
-
-The `## Assumptions` section appears in non-interactive docs only. In interactive mode, Inferred bets either get user-corrected via call-outs and become Key Decisions, are revised away, or were judged not-fork material by the keep test and dissolved into Key Decisions silently.
-
-This restores the audit visibility the original design intended (un-validated bets must not propagate as authoritative content), but surfaces them under their own label rather than hiding them. Downstream review can scrutinize Assumptions specifically.
-
----
-
 ## Self-redirect
 
 If the user response indicates they're in the wrong skill or want a different workflow (e.g., "this is too small, just /ce-work it" or "this needs more thought, let me brainstorm differently"):
@@ -281,7 +261,7 @@ After user confirmation (or after the soft-cut decision proceeds), Phase 3 write
 |---|---|
 | "What we're building" prose | `## Summary` (1–3 lines, forward-looking, what's proposed) |
 | Stated bullets | `## Requirements` (numbered R-IDs, full detail) and where relevant `## Problem Frame` for narrative context |
-| Inferred bullets | `## Key Decisions` (with rationale) — bets the user accepted in dialogue become decisions in the doc. In non-interactive mode, route to `## Assumptions` instead — see Headless mode above. |
+| Inferred bullets | `## Key Decisions` (with rationale) — bets the user accepted in dialogue become decisions in the doc. |
 | Out-of-scope bullets | `## Scope Boundaries` |
 
 The chat-time Trade-offs section dissolves into `## Key Decisions` (the explicit choices acknowledged in chat become documented decisions). The chat-time What's-not-in-scope section dissolves into `## Scope Boundaries`.
