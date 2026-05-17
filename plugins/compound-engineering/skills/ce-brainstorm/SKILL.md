@@ -212,15 +212,15 @@ Follow the Interaction Rules above. Use the platform's blocking question tool wh
 
 #### 1.4 Vocabulary Capture (only if CONCEPTS.md already exists)
 
-**Skip this sub-phase entirely if `CONCEPTS.md` does not exist at repo root.** ce-brainstorm is a contributor to existing vocabulary, not a creator of the file — creation is owned by ce-compound and ce-compound-refresh, which also handle the AGENTS.md discoverability surfacing in the same run.
+**Skip this sub-phase entirely if `CONCEPTS.md` does not exist at repo root** — creation is owned by ce-compound and ce-compound-refresh.
 
-If `CONCEPTS.md` exists, scan the dialogue for **resolved** domain terms — terms where the conversation actively pinned down a precise local meaning, not terms merely mentioned in passing. For each resolved term: if missing, add it; if present but the dialogue surfaced new precision, refine it; if already consistent, no action.
+If it exists, scan the dialogue for **resolved** domain terms — terms where the conversation actively pinned down a precise local meaning, not terms merely mentioned in passing. **Resolved means the dialogue is no longer questioning the definition.** Provisional terms that may still revise stay in the conversation only.
 
-**Resolved means the dialogue is no longer questioning the definition.** Provisional terms that the conversation may still revise stay in the conversation only.
+For each resolved term: if missing, add it; if present but the dialogue surfaced new precision, refine it; if already consistent, no action.
 
-Follow the format and quality bar set by the existing entries in `CONCEPTS.md` — heading levels, length norms, definition style. The file teaches its own conventions by example.
+**Domain entities, named processes, and status concepts with project-specific meaning only.** Not file paths, class names, function signatures, or implementation decisions — `CONCEPTS.md` is a glossary, not a spec or scratch pad.
 
-Apply edits silently. Vocabulary capture is a side effect of converging on shared language, not a decision the user makes per session.
+Follow the format set by existing entries. Apply edits silently.
 
 ### Phase 2: Explore Approaches
 
