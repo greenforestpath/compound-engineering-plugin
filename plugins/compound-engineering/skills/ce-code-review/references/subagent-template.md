@@ -48,7 +48,7 @@ The schema below describes the **full artifact file format** (all fields require
 - `requires_verification`: boolean, never null.
 - `confidence`: one of exactly `0`, `25`, `50`, `75`, or `100` — a discrete anchor, NOT a continuous number. Any other value (e.g., `72`, `0.85`, `"high"`) is a validation failure. Pick the anchor whose behavioral criterion you can honestly self-apply to this finding (see "Confidence rubric" below).
 
-If your persona description uses severity vocabulary like "high-priority" or "critical" in its rubric text, translate to the P0-P3 scale at emit time. "Critical / must-fix" → P0, "important / should-fix" → P1, "worth-noting / could-fix" → P2, "low-signal" → P3. Same for priorities described qualitatively in your analysis — map to P0-P3 on the way out.
+If your persona description uses severity vocabulary like "high-priority" or "critical" in its rubric text, translate to the P0-P3 scale at emit time. "Critical / must-fix" → P0, "important / should-fix" → P1, "worth-noting / could-fix" → P2. **Do not emit P3** — low-impact discretionary items are suppressed during synthesis. Omit them entirely rather than tagging P3.
 
 **Confidence rubric — use these exact behavioral anchors.** Pick the single anchor whose criterion you can honestly self-apply. Do not pick a value between anchors; only `0`, `25`, `50`, `75`, and `100` are valid. The rubric is anchored on behavior you performed, not on a vague sense of certainty — if you cannot truthfully attach the behavioral claim to the finding, step down to the next anchor.
 

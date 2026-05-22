@@ -38,11 +38,7 @@ Use this **exact format** when presenting synthesized review findings. Findings 
 |---|------|-------|----------|------------|-------|
 | 4 | `export_service.rb:45` | Missing error handling for CSV serialization failure | correctness | 75 | `safe_auto -> review-fixer` |
 
-### P3 -- Low
-
-| # | File | Issue | Reviewer | Confidence | Route |
-|---|------|-------|----------|------------|-------|
-| 5 | `export_helper.rb:12` | Format detection could use early return instead of nested conditional | maintainability | 75 | `advisory -> human` |
+P3 findings are **not rendered** — they are suppressed during synthesis. Omit low-impact discretionary items at the persona layer rather than emitting P3.
 
 ### Applied Fixes
 
@@ -69,10 +65,6 @@ Use this **exact format** when presenting synthesized review findings. Findings 
 
 - New export endpoint has no CLI/agent equivalent -- agent users cannot trigger exports
 
-### Schema Drift Check
-
-- Clean: schema.rb changes match the migrations in scope
-
 ### Deployment Notes
 
 - Pre-deploy: capture baseline row counts before enabling the export backfill
@@ -81,6 +73,7 @@ Use this **exact format** when presenting synthesized review findings. Findings 
 
 ### Coverage
 
+- P3 suppressions: 1 finding dropped (not surfaced)
 - Suppressed: 2 findings below anchor 75 (1 at anchor 50, 1 at anchor 25)
 - Residual risks: No rate limiting on export endpoint
 - Testing gaps: No test for concurrent export requests
@@ -119,7 +112,7 @@ This fails because: no pipe-delimited tables, no severity-grouped `###` headers,
 
 - **Pipe-delimited markdown tables** for findings -- never ASCII box-drawing characters or per-finding horizontal-rule separators between entries (the report-level `---` before the verdict is still required)
 - **Escape literal `|` in table cells** -- any `|` inside a finding title, issue description, code snippet, regex pattern, or delimited-string example must be written as `\|`. Unescaped pipes are parsed as column separators and corrupt the row's `Reviewer`, `Confidence`, and `Route` columns. Applies especially to cache-key delimiter examples, regex alternations, and logical-OR operators quoted inside findings.
-- **Severity-grouped sections** -- `### P0 -- Critical`, `### P1 -- High`, `### P2 -- Moderate`, `### P3 -- Low`. Omit empty severity levels.
+- **Severity-grouped sections** -- `### P0 -- Critical`, `### P1 -- High`, `### P2 -- Moderate`. Omit empty severity levels. **Do not render P3** — suppressed in synthesis.
 - **Stable sequential finding numbers** -- assign finding numbers once after sorting, continue them across severity sections, and reuse those same numbers when findings are repeated in Residual Actionable Work. Do not restart at `1` for each severity or route bucket.
 - **Always include file:line location** for code review issues
 - **Reviewer column** shows which persona(s) flagged the issue. Multiple reviewers = cross-reviewer agreement.
@@ -132,9 +125,8 @@ This fails because: no pipe-delimited tables, no severity-grouped `###` headers,
 - **Pre-existing section** -- separate table, no confidence column (these are informational)
 - **Learnings & Past Solutions section** -- results from ce-learnings-researcher, with links to docs/solutions/ files
 - **Agent-Native Gaps section** -- results from ce-agent-native-reviewer. Omit if no gaps found.
-- **Schema Drift Check section** -- results from ce-schema-drift-detector. Omit if the agent did not run.
-- **Deployment Notes section** -- key checklist items from ce-deployment-verification-agent. Omit if the agent did not run.
-- **Coverage section** -- suppressed count, residual risks, testing gaps, failed reviewers
+- **Deployment Notes section** -- key checklist items from ce-deployment-verification-agent. Omit if the agent did not run. Schema drift surfaces as `data-migration` findings — no separate section.
+- **Coverage section** -- P3 suppression count, suppressed count, residual risks, testing gaps, failed reviewers
 - **Summary uses blockquotes** for verdict, reasoning, and fix order
 - **Horizontal rule** (`---`) separates findings from verdict
 - **`###` headers** for each section -- never plain text headers
