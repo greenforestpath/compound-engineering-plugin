@@ -39,7 +39,9 @@ Say how the question will be answered, right-sized to it: a light question gets 
 
 Carry out the approach. When the answer depends on facts the model can't reliably supply from memory — current data, recent events, specifics that drift — gather them using the **Research decomposition pattern** under Step 1 below (decompose into focused questions, dispatch in parallel via the platform's subagent/web primitive, collate). Skip research for anything the model already knows well.
 
-**Execution here is research and analysis only — never code.** Answering a question by gathering and synthesizing information is in-bounds; writing or running code to change the system is not — that belongs in `ce-work`. This keeps the planning/execution boundary intact.
+**Ground answers about the user's own code, repo, or named artifacts in the actual sources — not memory.** When the question references local code, a specific file, a named CLI or service, or "our X", read those sources first (and any resource the user named — see Core Principle 8 in SKILL.md). "The model already knows the topic" covers general knowledge only, never the contents of the user's codebase: a comparison or recommendation about local code that was never read is ungrounded. Inspect, then answer.
+
+**Execution here is research and analysis only — never code.** Reading code and artifacts to understand them is in-bounds research; writing or running code to change the system is not — that belongs in `ce-work`. This keeps the planning/execution boundary intact.
 
 ### Deliver the answer
 
