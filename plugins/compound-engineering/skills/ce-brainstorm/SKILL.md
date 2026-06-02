@@ -210,18 +210,6 @@ Follow the Interaction Rules above. Use the platform's blocking question tool wh
 
 **Exit condition:** Continue until the idea is clear AND no integration-check questions are pending, OR the user explicitly wants to proceed.
 
-#### 1.4 Vocabulary Capture (only if CONCEPTS.md already exists)
-
-**Skip this sub-phase entirely if `CONCEPTS.md` does not exist at repo root** — creation is owned by ce-compound and ce-compound-refresh.
-
-If it exists, scan the dialogue for **resolved** domain terms — terms where the conversation actively pinned down a precise local meaning, not terms merely mentioned in passing. **Resolved means the dialogue is no longer questioning the definition.** Provisional terms that may still revise stay in the conversation only.
-
-For each resolved term: if missing, add it; if present but the dialogue surfaced new precision, refine it; if already consistent, no action.
-
-**Domain entities, named processes, and status concepts with project-specific meaning only.** Not file paths, class names, function signatures, or implementation decisions — `CONCEPTS.md` is a glossary, not a spec or catch-all.
-
-Follow the format set by existing entries. Apply edits silently.
-
 ### Phase 2: Explore Approaches
 
 If multiple plausible directions remain, propose **2-3 concrete approaches** based on research and conversation. Otherwise state the recommended direction directly.
@@ -277,6 +265,18 @@ When a doc is warranted, compose it using:
 - The format-specific rendering reference loaded at Phase 0.0 (`markdown-rendering.md` OR `html-rendering.md`) — how the resolved format presents the sections.
 
 Write to `docs/brainstorms/YYYY-MM-DD-<topic>-requirements.<md|html>` — extension follows `OUTPUT_FORMAT`. Confirm with the absolute path so the reference is clickable.
+
+### Phase 3.5: Vocabulary Capture (only if CONCEPTS.md already exists)
+
+**Skip this phase entirely if `CONCEPTS.md` does not exist at repo root** — creation is owned by ce-compound and ce-compound-refresh.
+
+Run this **after** the approaches, the scope synthesis, and the requirements doc — that is where the canonical term often gets chosen or corrected, so capturing during early dialogue (before this point) would miss the final resolved name. If it exists, scan the full dialogue and the requirements doc for **resolved** domain terms — terms where the conversation actively pinned down a precise local meaning, not terms merely mentioned in passing. **Resolved means the definition is settled, not still under discussion.** Provisional terms that may still revise stay in the conversation only.
+
+For each resolved term: if missing, add it; if present but new precision surfaced, refine it; if already consistent, no action.
+
+**Domain entities, named processes, and status concepts with project-specific meaning only.** Not file paths, class names, function signatures, or implementation decisions — `CONCEPTS.md` is a glossary, not a spec or catch-all.
+
+Follow the format set by existing entries. Apply edits silently. (If Phase 3 skipped the doc, still run this against the resolved dialogue.)
 
 ### Phase 4: Handoff
 
