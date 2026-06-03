@@ -327,6 +327,28 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/there is no apply \*?mode\*?/i)
   })
 
+  test("findings use terse cell + keyed detail line, mirror the template, stay consistent across severities", async () => {
+    const content = await readRepoFile("plugins/compound-engineering/skills/ce-code-review/SKILL.md")
+    const template = await readRepoFile(
+      "plugins/compound-engineering/skills/ce-code-review/references/review-output-template.md",
+    )
+
+    // Render-time load of the canonical skeleton (not just "see the template")
+    expect(content).toContain("load `references/review-output-template.md` and mirror")
+    expect(template).toContain("canonical skeleton")
+
+    // Terse cell + keyed detail line is the sanctioned home for depth
+    expect(content).toMatch(/keyed detail line/i)
+    expect(template).toMatch(/Detail line \(per finding/i)
+    expect(template).toMatch(/\*\*#N\*\*/)
+
+    // Consistency across severities is enforced (the failure seen in the wild: P1 blocks vs P2/P3 tables)
+    expect(content).toMatch(/Inconsistent treatment across severities/i)
+
+    // Multi-file applied fix is one row with one number (no duplicate #)
+    expect(template).toMatch(/one row with one `#`/i)
+  })
+
   test("PR-mode skip-condition pre-check stops without dispatching reviewers", async () => {
     const content = await readRepoFile("plugins/compound-engineering/skills/ce-code-review/SKILL.md")
 
@@ -699,6 +721,9 @@ describe("ce-code-review contract", () => {
     )
     expect(appliedIds).toEqual([4])
     expect(appliedIds.every((id) => !primaryFindingIds.includes(id))).toBe(true)
+
+    // Keyed detail lines under a table are supplements, not findings — they reuse a # and never add one
+    expect(fixture).toMatch(/^- \*\*#1\*\*/m)
 
     const residualSection = fixture.split("### Actionable Findings")[1]
     const residualIds = Array.from(

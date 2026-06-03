@@ -1,6 +1,6 @@
 # Code Review Output Template
 
-Use this **exact format** when presenting synthesized review findings. Findings are grouped by severity, not by reviewer.
+Use this **exact format** when presenting synthesized review findings — this example is the **canonical skeleton: copy its structure and fill it in**, do not re-derive a layout. Findings are grouped by severity, not by reviewer.
 
 **IMPORTANT:** Use pipe-delimited markdown tables (`| col | col |`). Do NOT use ASCII box-drawing characters.
 
@@ -24,7 +24,7 @@ Use this **exact format** when presenting synthesized review findings. Findings 
 | # | File | Fix | Reviewer |
 |---|------|-----|----------|
 | 6 | `export_helper_test.rb:40` | Added missing test for the empty-format branch | testing |
-| 7 | `orders_controller_test.rb:88` | Strengthened no-op assertion to check ownership is unchanged | testing |
+| 7 | `orders_controller.rb:88` (+test) | Tightened export file perms `0644 -> 0600` (security-posture — verify in diff) | security |
 
 Validation: export tests 11 -> 13; suite 214 pass, lint clean.
 
@@ -32,26 +32,31 @@ Validation: export tests 11 -> 13; suite 214 pass, lint clean.
 
 | # | File | Issue | Reviewer | Confidence |
 |---|------|-------|----------|------------|
-| 1 | `orders_controller.rb:42` | User-supplied ID in account lookup without ownership check | security | 100 |
+| 1 | `orders_controller.rb:42` | User-supplied ID in lookup, no ownership check | security | 100 |
+
+- **#1** — `find(params[:id])` on the export path has no `where(account: current_account)` scope, so any authenticated user can export another account's orders. Scope the lookup to the current account.
 
 ### P1 -- High
 
 | # | File | Issue | Reviewer | Confidence |
 |---|------|-------|----------|------------|
-| 2 | `export_service.rb:87` | Loads all orders into memory -- unbounded for large accounts | performance | 100 |
-| 3 | `export_service.rb:91` | No pagination -- response size grows linearly with order count | api-contract, performance | 75 |
+| 2 | `export_service.rb:87` | Loads all orders into memory -- unbounded | performance | 100 |
+| 3 | `export_service.rb:91` | No pagination contract | api-contract, performance | 75 |
+
+- **#2** — `Order.where(...).to_a` materializes the full result set; a large account OOMs the worker. Stream with `find_each` or paginate.
+- **#3** — the endpoint returns every row in one response; needs a cursor/page contract before GA. Design decision — see Actionable Findings.
 
 ### P2 -- Moderate
 
 | # | File | Issue | Reviewer | Confidence |
 |---|------|-------|----------|------------|
-| 4 | `export_service.rb:45` | Missing error handling for CSV serialization failure | correctness | 75 |
+| 4 | `export_service.rb:45` | No error handling for CSV serialization failure | correctness | 75 |
 
 ### P3 -- Low
 
 | # | File | Issue | Reviewer | Confidence |
 |---|------|-------|----------|------------|
-| 5 | `export_helper.rb:12` | Format detection could use early return instead of nested conditional | maintainability | 75 |
+| 5 | `export_helper.rb:12` | Format detection could use an early return | maintainability | 75 |
 
 ### Actionable Findings
 
@@ -114,7 +119,7 @@ File: bar.go:99
 Issue: Another problem
 ```
 
-This fails because: no pipe-delimited tables, no severity-grouped `###` headers, uses box-drawing horizontal rules, no numbered findings, no `## Code Review Results` title, and the verdict is not in a blockquote. Always use the table format from the example above.
+This fails because: no pipe-delimited tables, no severity-grouped `###` headers, uses box-drawing horizontal rules, no numbered findings, no `## Code Review Results` title, and the verdict is not in a blockquote. Always use the table format from the example above. When a finding needs more explanation than fits a terse `Issue` cell, put it in the keyed detail list under the table (`- **#N** — …`) — never expand it into `Field:`-prefixed blocks.
 
 ## Formatting Rules
 
@@ -126,9 +131,10 @@ This fails because: no pipe-delimited tables, no severity-grouped `###` headers,
 - **Reviewer column** shows which persona(s) flagged the issue. Multiple reviewers = cross-reviewer agreement.
 - **Confidence column** shows the finding's anchor as an integer (`50`, `75`, or `100`). Never render as a float.
 - **No `Route` column in the per-severity tables** -- the synthesized route (``<autofix_class> -> <owner>``) appears only in the Actionable Findings table and the `mode:agent` JSON. The scannable severity tables are 5 columns: `# | File | Issue | Reviewer | Confidence`.
+- **Detail line (per finding, as needed)** -- keep the `Issue` cell to one terse line (the scannable index); put the full explanation in a bullet list immediately under the severity table, keyed by stable `#`: `- **#N** — <why it matters + concrete fix direction>`. Add a detail line for findings whose one-liner is not self-sufficient -- usually P0/P1; P2/P3 are typically terse-only. This keyed list is the sanctioned home for depth -- never expand a finding into `Field:`-prefixed blocks.
 - **Header includes** scope, intent, and reviewer team with per-conditional justifications
 - **Mode line** -- include `interactive` or `agent`
-- **Applied section (default mode only)** -- when the review applied fixes (Stage 5c), list them first, before the severity tables, as `# | File | Fix | Reviewer` followed by a one-line validation outcome (e.g. "suite 214 pass, lint clean"). Flag green-but-unverifiable edits (auth/contract/concurrency) prominently. Applied findings keep their stable `#` and appear only here, not in the severity tables. Omit in `mode:agent` and when nothing was applied
+- **Applied section (default mode only)** -- when the review applied fixes (Stage 5c), list them first, before the severity tables, as `# | File | Fix | Reviewer` followed by a one-line validation outcome (e.g. "suite 214 pass, lint clean"). A fix spanning multiple files is **one row with one `#`** (e.g. `controller.rb:88 (+test)`) -- never duplicate the number across rows. Flag green-but-unverifiable edits (auth/contract/concurrency) inline in the `Fix` cell, e.g. `(security-posture — verify in diff)`. Applied findings keep their stable `#` and appear only here, not in the severity tables. Omit in `mode:agent` and when nothing was applied
 - **Actionable Findings section** -- include when the actionable queue is non-empty (findings for the caller to handle)
 - **Pre-existing section** -- separate table, no confidence column (these are informational)
 - **Learnings & Past Solutions section** -- results from ce-learnings-researcher, with links to docs/solutions/ files

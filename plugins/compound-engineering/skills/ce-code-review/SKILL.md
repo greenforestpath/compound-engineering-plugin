@@ -516,23 +516,28 @@ Severity, confidence, and cross-reviewer agreement tell you what to do first and
 
 Assemble the final report. **Default:** pipe-delimited markdown tables for findings (mandatory — see review output template). **`mode:agent`:** skip markdown and emit JSON (see ### JSON output format). Other sections (Actionable Findings, Learnings, Coverage, etc.) use bullets and `---` before the verdict in markdown mode only.
 
-**Findings table shape (default mode — load-bearing, do not improvise).** Render every finding as a row in a pipe-delimited table grouped by severity. Copy this shape; do not invent a layout:
+**Before writing the report, load `references/review-output-template.md` and mirror it** — that file is the canonical skeleton (full per-section structure). The block below is the always-loaded fallback so the shape survives a long session even if the template was not reloaded.
+
+**Findings table shape (default mode — load-bearing, do not improvise).** Every finding is a row in a pipe-delimited table grouped by severity, with a **terse** `Issue` cell; depth goes in a keyed detail line under the table. Copy this shape; do not invent a layout:
 
 | # | File | Issue | Reviewer | Confidence |
 |---|------|-------|----------|------------|
-| 1 | `path/to/file.go:42` | One concise line — detail lives in `why_it_matters`/JSON | correctness | 100 |
+| 1 | `path/to/file.go:42` | One terse line — the scannable index | correctness | 100 |
 
-Per-severity tables are **5 columns** — `Route` is not shown here; it appears only in the Actionable Findings table (and the JSON), keeping the scannable tables narrow. Keep the `Issue` cell to a single concise line so rows stay narrow across terminals and non-Claude harnesses; depth belongs in `why_it_matters` (artifact/JSON), not the table. This inline skeleton is the always-loaded fallback so the shape survives a long session even if `references/review-output-template.md` was not reloaded — that template carries the full per-section rules.
+- **#1** — full explanation here (why it matters + concrete fix direction), as a keyed detail line under the table.
 
-**Never produce these shapes (instant fail — if you catch one mid-draft, re-render every finding as the table above before delivering):**
-- Findings as `Field:`-prefixed blocks (`Sev:` / `File:` / `Issue:` / `Route:` lines)
+Per-severity tables are **5 columns** — `Route` is not shown here (it appears only in the Actionable Findings table and the JSON). Keep the `Issue` cell to one terse line; when a finding needs more, put the depth in the **keyed detail line** (`- **#N** — …`), not in the cell — usually for P0/P1; P2/P3 are typically terse-only.
+
+**Never produce these shapes (instant fail — if you catch one mid-draft, re-render before delivering):**
+- A finding's index rendered as `Field:`-prefixed blocks (`Sev:` / `File:` / `Issue:` / `Route:` lines) — depth goes in the keyed detail line, never a field block
 - Per-finding separators made of horizontal rules or box-drawing characters (`────`, `———`)
-- Findings as a numbered or bulleted list instead of table rows
-- Unicode separators or arrows in the Route cell (middot `·`); use ASCII `->`
+- The severity index as a plain bulleted/numbered list **instead of** a table (the keyed `- **#N** —` detail line under a table is a supplement, not a replacement — that is expected)
+- Unicode separators or arrows in cells (middot `·`); use ASCII `->`
+- **Inconsistent treatment across severities** (e.g. P1 as blocks while P2/P3 are tables) — every severity uses the same table + optional detail-line shape
 
 1. **Header.** Scope, intent, mode, reviewer team with per-conditional justifications.
 2. **Applied (default mode only).** When Stage 5c applied fixes, list them first — before the findings tables — in an Applied section (see review output template): `# | File | Fix | Reviewer`, then a one-line validation outcome (e.g. "pin tests 4 -> 6; suite 94 pass, lint clean"). Flag green-but-unverifiable edits (auth/contract/concurrency) prominently. Omit this section in `mode:agent` and when nothing was applied. Applied findings appear here, not in the severity tables.
-3. **Findings.** Rendered as pipe-delimited tables grouped by severity (`### P0 -- Critical`, `### P1 -- High`, `### P2 -- Moderate`, `### P3 -- Low`). Each finding row shows `#`, file, issue, reviewer(s), and confidence (5 columns). The synthesized route is **not** in these tables — it appears in the Actionable Findings section and the JSON. Omit empty severity levels. Never render findings as freeform text blocks or numbered lists. Finding numbers come from the stable assignment in Stage 5 -- never re-derive them per severity table.
+3. **Findings.** Pipe-delimited tables grouped by severity (`### P0 -- Critical`, `### P1 -- High`, `### P2 -- Moderate`, `### P3 -- Low`), terse `Issue` cell, 5 columns (`#`, file, issue, reviewer(s), confidence) — route is **not** shown here (it's in Actionable Findings and the JSON). Under each table, add a keyed detail line (`- **#N** — …`) for findings whose one-liner is not self-sufficient (usually P0/P1). Omit empty severity levels. Use the **same** shape for every severity — never render one severity as field-blocks and another as a table. Finding numbers come from the stable assignment in Stage 5 -- never re-derive them per severity table.
 4. **Requirements Completeness.** Include only when a plan was found in Stage 2b. For each requirement (R1, R2, etc.) and implementation unit in the plan, report whether corresponding work appears in the diff. Use a simple checklist: met / not addressed / partially addressed. Routing depends on `plan_source`:
    - **`explicit`** (caller-provided or PR body): Flag unaddressed requirements or implementation units as P1 findings with `autofix_class: manual`, `owner: downstream-resolver`. These enter the actionable queue.
    - **`inferred`** (auto-discovered): Flag unaddressed requirements or implementation units as P3 findings with `autofix_class: advisory`, `owner: human`. These stay in the report only — no autonomous follow-up. An inferred plan match is a hint, not a contract.
@@ -547,7 +552,7 @@ Per-severity tables are **5 columns** — `Route` is not shown here; it appears 
 
 Do not include time estimates.
 
-**Format verification (default only — last gate before delivering).** Scan the assembled report for the failure signatures above: if any finding appears as `Field:`-prefixed lines, as a bulleted or numbered list, or separated by `────`/box-drawing/middot `·` characters, STOP and re-render every finding as pipe-delimited table rows (`| # | File | Issue | ... |`) before delivering. Skip this check only when `mode:agent` is active — JSON is the deliverable.
+**Format verification (default only — last gate before delivering).** Scan the assembled report for the failure signatures above: if any severity's finding index appears as `Field:`-prefixed lines, as a plain bulleted/numbered list replacing the table, separated by `────`/box-drawing/middot `·` characters, or if severities are rendered inconsistently (one as blocks, another as tables), STOP and re-render every severity as the same pipe-delimited table (`| # | File | Issue | ... |`) before delivering. The keyed `- **#N** —` detail line under a table is expected — do not flag it. Skip this check only when `mode:agent` is active — JSON is the deliverable.
 
 ### JSON output format (`mode:agent` only)
 

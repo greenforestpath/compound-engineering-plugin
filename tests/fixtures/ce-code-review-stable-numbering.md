@@ -10,7 +10,7 @@
 
 | # | File | Fix | Reviewer |
 |---|------|-----|----------|
-| 4 | `export_service_test.rb:120` | Added coverage for the empty-array branch | testing |
+| 4 | `export_service.rb:60 (+test)` | Tightened export file perms 0644 -> 0600 (security-posture — verify in diff) | security |
 
 Validation: tests 18 -> 19; suite 96 pass, lint clean.
 
@@ -20,6 +20,8 @@ Validation: tests 18 -> 19; suite 96 pass, lint clean.
 |---|------|-------|----------|------------|
 | 1 | `export_service.rb:87` | Loads all orders into memory | performance | 100 |
 | 2 | `export_service.rb:91` | Missing pagination contract | api-contract | 75 |
+
+- **#1** — `Order.where(...).to_a` materializes the full result set; stream with `find_each` or paginate.
 
 ### P2 -- Moderate
 
