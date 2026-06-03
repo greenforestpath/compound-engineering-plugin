@@ -447,7 +447,7 @@ When a finding qualifies:
 
 Independent verification gate. Spawn one validator sub-agent per surviving finding using `references/validator-template.md`. Findings the validator rejects are dropped; confirmed findings flow through unchanged.
 
-**When this stage runs:** After Stage 5 whenever at least one finding survives — skip only when zero survive. When more than 15 survive, do **not** skip the stage; validate per the budget cap in step 2. Same rule for default and `mode:agent`.
+**When this stage runs:** After Stage 5 whenever at least one finding survives — skip only when zero survive. When more than 15 survive, do **not** skip the stage; validate per the budget cap in step 2. The default method is the per-finding validator wave (steps below); for a **P2/P3-only** survivor set the orchestrator may instead validate by direct first-party verification (see below). Same rule for default and `mode:agent`.
 
 **Steps:**
 
@@ -466,7 +466,10 @@ Independent verification gate. Spawn one validator sub-agent per surviving findi
 5. **Use mid-tier model for validators.** Same model class (sonnet) the persona reviewers use. Validators are read-only — same constraints as persona reviewers. They may use non-mutating inspection commands (Read, Grep, Glob, git blame, gh).
 6. **Record metrics for Coverage.** Total dispatched, validated true count, validated false count (with reasons), infra failures (and any P0/P1 kept-on-failure as degraded), and over-budget drops.
 
-**Orchestrator direct verification (complement, not a skip).** When a finding's severity hinges on a fact the orchestrator can check cheaply and authoritatively — a pinned dependency's source, a wiring/config fact in this repo, a build tag — verify it directly in addition to (not instead of) the validator subagent; a first-party source read is stronger than a subagent re-read. Use single-purpose native tools (Read/Grep/Glob, one git command at a time), never chained or error-suppressed shell. Fold confirmed facts into synthesis and note them in Coverage. This never replaces the validator wave for P0/P1 — those still get an independent validator per the cap rule above.
+**Orchestrator direct verification.** When a finding's severity hinges on a fact the orchestrator can check cheaply and authoritatively — a pinned dependency's source, a wiring/config fact in this repo, a build tag — verify it directly with single-purpose native tools (Read/Grep/Glob, one git command at a time), never chained or error-suppressed shell. Fold confirmed facts into synthesis. How it relates to the validator wave depends on severity:
+
+- **Any P0/P1 survives:** the per-finding validator wave is **required** for every survivor; direct verification only *complements* it (it strengthens a finding but never replaces the independent validator for a critical/high).
+- **Only P2/P3 survive:** direct first-party verification per finding **may stand in for** the wave when each finding is source-checkable (a fact you can confirm by reading the cited code, callers, guards, or history). Note in Coverage that validation was done by orchestrator direct verification rather than a subagent wave.
 
 **Why per-finding bounded dispatch (not batched):** Independence is the point. A single batched validator looking at all findings together pattern-matches across them and recreates the persona-bias problem. Per-finding dispatch preserves fresh context while the scheduler respects harness limits.
 
